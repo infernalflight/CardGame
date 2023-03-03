@@ -8,7 +8,6 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-use function mysql_xdevapi\getSession;
 
 class GameController extends AbstractController
 {
@@ -16,6 +15,9 @@ class GameController extends AbstractController
 
     public const VALUES = ['2', '3', '4', '5', '6', '7', '8', '9' , '10', 'Valet', 'Dame', 'Roi', 'As'];
 
+    /**
+     * @throws \Exception
+     */
     #[Route('/', name: 'game')]
     public function startAction(Request $request): Response
     {
@@ -42,38 +44,39 @@ class GameController extends AbstractController
             $drawForm->handleRequest($request);
             if ($drawForm->isSubmitted() && $drawForm->isValid()) {
                 $values = $drawForm->getData();
-                if (is_numeric($values['number']) && $values['number'] > 0 && $values['number'] < 53) {
-                    $drawnColors = self::COLORS;
-                    $drawnValues = self::VALUES;
-
-                    shuffle($drawnColors);
-                    shuffle($drawnValues);
-
-                    foreach ($randomizedColors as $color) {
-                        foreach ($randomizedValues as $value) {
-                            $cards[] = new Card($color, $value);
-                        }
-                    }
-
-                    shuffle($cards);
-
-                    $drawnCards = array_slice($cards, 0, $values['number']);
-
-                    foreach ($drawnCards as &$card) {
-                        $card->setIndexColor(array_search($card->getColor(), $randomizedColors));
-                        $card->setIndexValue(array_search($card->getvalue(), $randomizedValues));
-                    }
-
-                    $sortedCards = $drawnCards;
-
-                    usort($sortedCards, function($a, $b) {
-                        //retourner 0 en cas d'égalité
-                        if ($a->getIndexColor() == $b->getIndexColor()) {
-                            return ($a->getIndexValue() < $b->getIndexValue()) ? -1 : 1;
-                        }
-                        return ($a->getIndexColor() < $b->getIndexColor()) ? -1 : 1;
-                    });
+                if (!(is_numeric($values['number']) && $values['number'] > 0 && $values['number'] < 53)) {
+                    throw new \Exception('error');
                 }
+
+                $drawnColors = self::COLORS;
+                $drawnValues = self::VALUES;
+
+                shuffle($drawnColors);
+                shuffle($drawnValues);
+
+                foreach ($randomizedColors as $color) {
+                    foreach ($randomizedValues as $value) {
+                        $cards[] = new Card($color, $value);
+                    }
+                }
+
+                shuffle($cards);
+
+                $drawnCards = array_slice($cards, 0, $values['number']);
+
+                foreach ($drawnCards as &$card) {
+                    $card->setIndexColor(array_search($card->getColor(), $randomizedColors));
+                    $card->setIndexValue(array_search($card->getvalue(), $randomizedValues));
+                }
+
+                $sortedCards = $drawnCards;
+
+                usort($sortedCards, function($a, $b) {
+                    if ($a->getIndexColor() == $b->getIndexColor()) {
+                        return ($a->getIndexValue() < $b->getIndexValue()) ? -1 : 1;
+                    }
+                    return ($a->getIndexColor() < $b->getIndexColor()) ? -1 : 1;
+                });
             }
         }
 
@@ -92,6 +95,10 @@ class GameController extends AbstractController
         $session = $request->getSession();
         if (!empty($session->get('randomized_colors'))) {
             $session->set('randomized_colors', []);
+        }
+
+        if (!empty($session->get('randomized_values'))) {
+            $session->set('randomized_values', []);
         }
 
         return $this->redirectToRoute('game');
