@@ -29,7 +29,6 @@ class GameController extends AbstractController
             shuffle($randomizedColors);
             shuffle($randomizedValues);
 
-
             $session->set('randomized_colors', $randomizedColors);
             $session->set('randomized_values', $randomizedValues);
         }
