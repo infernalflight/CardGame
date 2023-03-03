@@ -1,0 +1,36 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    <h2>Début du jeu</h2>
+    <a href="{{ path('reset') }}">Reinitialiser l'ordre aléatoire des couleurs et des valeurs</a>
+    <h3>Ces couleurs sont ordonnées de façon aléatoire:</h3>
+    <ul>
+    {% for color in randomized_colors %}
+        <li>{{ color }}</li>
+    {% endfor %}
+    </ul>
+    <h3>Ces valeurs sont ordonnées de façon aléatoire:</h3>
+    <ul>
+        {% for value in randomized_values %}
+            <li>{{ value }}</li>
+        {% endfor %}
+    </ul>
+    <hr>
+    {{ form(draw_form) }}
+    <hr>
+    {% if drawn_cards|length > 0 %}
+        <h2>Tirage</h2>
+        <h3>Voici les cartes tirées:</h3>
+        <ul>
+        {% for card in drawn_cards %}
+            <li>{{ card._tostring }}</li>
+        {% endfor %}
+        </ul>
+        <h3>Voici les cartes triées selon l'ordre donné ci-dessus:</h3>
+        <ul>
+            {% for card in sorted_cards %}
+                <li>{{ card._tostring }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+{% endblock %}
